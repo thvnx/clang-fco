@@ -13,3 +13,5 @@ target_link_libraries(clang-fco
   clangFrontend
   clangTooling
   )
+
+install(TARGETS clang-fco RUNTIME DESTINATION bin)
