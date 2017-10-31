@@ -51,6 +51,7 @@ using namespace clang::ast_matchers;
 using namespace clang::tooling;
 using namespace llvm;
 
+
 namespace {
 class ClangFCOCallback : public MatchFinder::MatchCallback {
 public:
@@ -58,11 +59,32 @@ public:
       : Replace(Replace) {}
 
   void run(const MatchFinder::MatchResult &Result) override {
+
+    const BinaryOperator *BinOp = Result.Nodes.getNodeAs<BinaryOperator>("AssignOp");
+    const Expr *LeftHS = BinOp->getLHS();
+    const Expr *RightHS = BinOp->getRHS();
+
+    //BinOp->dump();
+
+    llvm::outs() << BinOp->getOperatorLoc().printToString(*(Result.SourceManager)) << ": ";
+
+    llvm::outs() << "match " << BinOp->isMultiplicativeOp() << " " <<
+      LeftHS->getType().getAsString() << " " <<
+      RightHS->getType().getAsString() << " " <<
+      LeftHS->getType().getTypePtr()->isRealFloatingType() << " " <<
+      '\n';
+
+    Replacement Rep(*(Result.SourceManager), BinOp->getLocStart(), 0,
+		    "// assign_op\n");
+    //Replace->add(Rep);
+    Replace->insert ( std::pair<std::string,Replacement>("toto",Rep) );
+    llvm::outs() << Rep.isApplicable() << " " << Rep.toString() << '\n';
+
     // TODO: This routine will get called for each thing that the matchers
     // find.
     // At this point, you can examine the match, and do whatever you want,
     // including replacing the matched text with other text
-    (void)Replace; // This to prevent an "unused member variable" warning;
+    //(void)Replace; // This to prevent an "unused member variable" warning;
   }
 
 private:
@@ -78,13 +100,17 @@ int main(int argc, const char **argv) {
   llvm::sys::PrintStackTraceOnErrorSignal(argv[0]);
   CommonOptionsParser OptionsParser(argc, argv, ClangFCOCategory);
   RefactoringTool Tool(OptionsParser.getCompilations(),
-                       OptionsParser.getSourcePathList());
+		       OptionsParser.getSourcePathList());
   ast_matchers::MatchFinder Finder;
   ClangFCOCallback Callback(&Tool.getReplacements());
 
   // TODO: Put your matchers here.
   // Use Finder.addMatcher(...) to define the patterns in the AST that you
   // want to match against. You are not limited to just one matcher!
+
+  Finder.addMatcher( binaryOperator(hasOperatorName("=")).bind("AssignOp") , &Callback);
+
+  Finder.addMatcher( varDecl(hasInitializer(binaryOperator(hasOperatorName("*")).bind("AssignOp"))).bind("someVarDecl") , &Callback);
 
   return Tool.run(newFrontendActionFactory(&Finder).get());
 }
