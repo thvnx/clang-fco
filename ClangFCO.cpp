@@ -1,36 +1,7 @@
-//===---- tools/extra/ToolTemplate.cpp - Template for refactoring tool ----===//
-//
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
-//
-//===----------------------------------------------------------------------===//
-//
-//  This file implements an empty refactoring tool using the clang tooling.
-//  The goal is to lower the "barrier to entry" for writing refactoring tools.
+//===---------- ClangFCO.cpp -- Floating-point Code Optimization ----------===//
 //
 //  Usage:
-//  clang-fco <cmake-output-dir> <file1> <file2> ...
-//
-//  Where <cmake-output-dir> is a CMake build directory in which a file named
-//  compile_commands.json exists (enable -DCMAKE_EXPORT_COMPILE_COMMANDS in
-//  CMake to get this output).
-//
-//  <file1> ... specify the paths of files in the CMake source tree. This path
-//  is looked up in the compile command database. If the path of a file is
-//  absolute, it needs to point into CMake's source tree. If the path is
-//  relative, the current working directory needs to be in the CMake source
-//  tree and the file must be in a subdirectory of the current working
-//  directory. "./" prefixes in the relative files will be automatically
-//  removed, but the rest of a relative path must be a suffix of a path in
-//  the compile command line database.
-//
-//  For example, to use clang-fco on all files in a subtree of the
-//  source tree, use:
-//
-//    /path/in/subtree $ find . -name '*.cpp'|
-//        xargs clang-fco /path/to/build
+//  clang-fco <file1> <file2> ... --
 //
 //===----------------------------------------------------------------------===//
 
@@ -71,20 +42,28 @@ public:
     llvm::outs() << "match " << BinOp->isMultiplicativeOp() << " " <<
       LeftHS->getType().getAsString() << " " <<
       RightHS->getType().getAsString() << " " <<
-      LeftHS->getType().getTypePtr()->isRealFloatingType() << " " <<
-      '\n';
+      LeftHS->getType().getTypePtr()->isRealFloatingType() << " " << '\n';
 
-    Replacement Rep(*(Result.SourceManager), BinOp->getLocStart(), 0,
-		    "// assign_op\n");
-    //Replace->add(Rep);
-    Replace->insert ( std::pair<std::string,Replacement>("toto",Rep) );
+    Replacement Rep(*(Result.SourceManager), BinOp->getLocStart(), 0, "/* test */");
+
+    std::map<std::string, Replacements>::iterator it;
+    it = Replace->find(Result.SourceManager->getFilename(BinOp->getExprLoc()));
+    if (it != Replace->end())
+      {
+	llvm::outs() << "bingo: " << it->second.size() << '\n';
+	Replacements rr(Rep);
+	it->second = rr.merge(it->second);
+	llvm::outs() << "bingo: " << it->second.size() << '\n';
+      }
+    else
+      {
+	Replace->insert ( std::pair<std::string, Replacements>(Result.SourceManager->getFilename(BinOp->getExprLoc()) , Rep) );
+      }
+
+    llvm::outs() << Result.SourceManager->getFilename(BinOp->getExprLoc()) << '\n';
+
     llvm::outs() << Rep.isApplicable() << " " << Rep.toString() << '\n';
 
-    // TODO: This routine will get called for each thing that the matchers
-    // find.
-    // At this point, you can examine the match, and do whatever you want,
-    // including replacing the matched text with other text
-    //(void)Replace; // This to prevent an "unused member variable" warning;
   }
 
 private:
@@ -112,5 +91,9 @@ int main(int argc, const char **argv) {
 
   Finder.addMatcher( varDecl(hasInitializer(binaryOperator(hasOperatorName("*")).bind("AssignOp"))).bind("someVarDecl") , &Callback);
 
-  return Tool.run(newFrontendActionFactory(&Finder).get());
+  int res = Tool.run/*AndSave*/(newFrontendActionFactory(&Finder).get());
+
+  llvm::outs() << Tool.getReplacements().size() << '\n';
+
+  return res;
 }
