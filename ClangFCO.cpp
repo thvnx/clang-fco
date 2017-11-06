@@ -24,9 +24,9 @@ using namespace llvm;
 
 
 namespace {
-class ClangFCOCallback : public MatchFinder::MatchCallback {
+class AssignOpCallback : public MatchFinder::MatchCallback {
 public:
-  ClangFCOCallback(std::map<std::string, Replacements> *Replace)
+  AssignOpCallback(std::map<std::string, Replacements> *Replace)
       : Replace(Replace) {}
 
   void run(const MatchFinder::MatchResult &Result) override {
@@ -69,6 +69,46 @@ public:
 private:
   std::map<std::string, Replacements> *Replace;
 };
+
+class VarDeclCallback : public MatchFinder::MatchCallback {
+public:
+  VarDeclCallback(std::map<std::string, Replacements> *Replace)
+      : Replace(Replace) {}
+
+  void run(const MatchFinder::MatchResult &Result) override {
+
+    const BinaryOperator *BinOp = Result.Nodes.getNodeAs<BinaryOperator>("AssignOp");
+    const Expr *LeftHS = BinOp->getLHS();
+    const Expr *RightHS = BinOp->getRHS();
+
+    llvm::outs() << "match " << BinOp->isMultiplicativeOp() << " " <<
+      LeftHS->getType().getAsString() << " " <<
+      RightHS->getType().getAsString() << " " <<
+      LeftHS->getType().getTypePtr()->isRealFloatingType() << " " << '\n';
+
+    Replacement Rep(*(Result.SourceManager), BinOp->getLocStart(), 0, "/* test */");
+
+    std::map<std::string, Replacements>::iterator it;
+    it = Replace->find(Result.SourceManager->getFilename(BinOp->getExprLoc()));
+    if (it != Replace->end())
+      {
+	llvm::outs() << "bingo vd: " << it->second.size() << '\n';
+	Replacements rr(Rep);
+	it->second = rr.merge(it->second);
+	llvm::outs() << "bingo vd: " << it->second.size() << '\n';
+      }
+    else
+      {
+	Replace->insert ( std::pair<std::string, Replacements>(Result.SourceManager->getFilename(BinOp->getExprLoc()) , Rep) );
+      }
+
+    llvm::outs() << Rep.isApplicable() << " " << Rep.toString() << '\n';
+
+  }
+
+private:
+  std::map<std::string, Replacements> *Replace;
+};
 } // end anonymous namespace
 
 // Set up the command line options
@@ -81,15 +121,16 @@ int main(int argc, const char **argv) {
   RefactoringTool Tool(OptionsParser.getCompilations(),
 		       OptionsParser.getSourcePathList());
   ast_matchers::MatchFinder Finder;
-  ClangFCOCallback Callback(&Tool.getReplacements());
+  AssignOpCallback aoCallback(&Tool.getReplacements());
+  VarDeclCallback vdCallback(&Tool.getReplacements());
 
   // TODO: Put your matchers here.
   // Use Finder.addMatcher(...) to define the patterns in the AST that you
   // want to match against. You are not limited to just one matcher!
 
-  Finder.addMatcher( binaryOperator(hasOperatorName("=")).bind("AssignOp") , &Callback);
+  Finder.addMatcher( binaryOperator(hasOperatorName("=")).bind("AssignOp") , &aoCallback);
 
-  Finder.addMatcher( varDecl(hasInitializer(binaryOperator(hasOperatorName("*")).bind("AssignOp"))).bind("someVarDecl") , &Callback);
+  Finder.addMatcher( varDecl(hasInitializer(binaryOperator(hasOperatorName("*")).bind("AssignOp"))).bind("someVarDecl") , &vdCallback);
 
   int res = Tool.run/*AndSave*/(newFrontendActionFactory(&Finder).get());
 
