@@ -1,0 +1,19 @@
+language: c
+
+compiler:
+  - gcc
+
+os:
+  - linux
+
+before_script:
+  - git clone --depth 1 https://github.com/llvm/llvm-project.git
+  - echo "add_subdirectory(clang-fco)" >>  llvm-project/clang-tools-extra/CMakelist.txt
+  - mkdir llvm-project/clang-tools-extra/clang-fco
+  - cp CMakeLists.txt ClangFCO.cpp llvm-project/clang-tools-extra/clang-fco
+  - mkdir llvm-project-build
+  - cd llvm-project-build
+  - cmake -G "Ninja" ../llvm-project
+
+script:
+  - echo "Finished"
