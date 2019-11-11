@@ -13,7 +13,7 @@ before_script:
   - cp CMakeLists.txt ClangFCO.cpp llvm-project/clang-tools-extra/clang-fco
   - mkdir llvm-project-build
   - cd llvm-project-build
-  - cmake -G "Ninja" -DLLVM_ENABLE_PROJECTS=clang -G "Unix Makefiles" ../llvm-project/llvm
+  - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_BUILD_LLVM_DYLIB=True -DLLVM_ENABLE_PROJECTS=clang -G "Unix Makefiles" ../llvm-project/llvm
   - make
 
 script:
