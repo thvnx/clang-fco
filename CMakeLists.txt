@@ -7,11 +7,11 @@ add_clang_executable(clang-fco
   )
 
 target_link_libraries(clang-fco
+  PRIVATE
   clangAST
   clangASTMatchers
   clangBasic
   clangFrontend
   clangTooling
+  clangToolingRefactoring
   )
-
-install(TARGETS clang-fco RUNTIME DESTINATION bin)

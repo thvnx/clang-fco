@@ -1,7 +1,17 @@
-//===---------- ClangFCO.cpp -- Floating-point Code Optimization ----------===//
+//===- tools/extra/Clang-FCO.cpp - Floating-point Code Optimization (FCO) -===//
+//
+// License ...
+//
+//===----------------------------------------------------------------------===//
+//
+//  This file implements ... refactoring tool using the clang tooling.
 //
 //  Usage:
-//  clang-fco <file1> <file2> ... --
+//  clang-fco <file1> <file2> ...
+//
+//  For example, to ..., use:
+//
+//    $ clang-cfo file1.c ...
 //
 //===----------------------------------------------------------------------===//
 
@@ -11,7 +21,9 @@
 #include "clang/Frontend/FrontendActions.h"
 #include "clang/Lex/Lexer.h"
 #include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Tooling/Execution.h"
 #include "clang/Tooling/Refactoring.h"
+#include "clang/Tooling/Refactoring/AtomicChange.h"
 #include "clang/Tooling/Tooling.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/MemoryBuffer.h"
@@ -21,7 +33,6 @@ using namespace clang;
 using namespace clang::ast_matchers;
 using namespace clang::tooling;
 using namespace llvm;
-
 
 namespace {
 class AssignOpCallback : public MatchFinder::MatchCallback {
@@ -44,7 +55,7 @@ public:
       RightHS->getType().getAsString() << " " <<
       LeftHS->getType().getTypePtr()->isRealFloatingType() << " " << '\n';
 
-    Replacement Rep(*(Result.SourceManager), BinOp->getLocStart(), 0, "/* test */");
+    Replacement Rep(*(Result.SourceManager), BinOp->getBeginLoc(), 0, "/* test */");
 
     std::map<std::string, Replacements>::iterator it;
     it = Replace->find(Result.SourceManager->getFilename(BinOp->getExprLoc()));
@@ -86,7 +97,7 @@ public:
       RightHS->getType().getAsString() << " " <<
       LeftHS->getType().getTypePtr()->isRealFloatingType() << " " << '\n';
 
-    Replacement Rep(*(Result.SourceManager), BinOp->getLocStart(), 0, "/* test */");
+    Replacement Rep(*(Result.SourceManager), BinOp->getBeginLoc(), 0, "/* test */");
 
     std::map<std::string, Replacements>::iterator it;
     it = Replace->find(Result.SourceManager->getFilename(BinOp->getExprLoc()));
