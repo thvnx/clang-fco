@@ -2,7 +2,7 @@
 set -eu
 
 git clone --depth 1 https://github.com/llvm/llvm-project.git
-echo "add_subdirectory(clang-fco)" >> llvm-project/clang-tools-extra/CMakelist.txt
+echo "add_subdirectory(clang-fco)" >> llvm-project/clang-tools-extra/CMakeLists.txt
 mkdir llvm-project/clang-tools-extra/clang-fco
 cp CMakeLists.txt ClangFCO.cpp llvm-project/clang-tools-extra/clang-fco
 mkdir llvm-project-build
