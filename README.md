@@ -3,19 +3,23 @@ clang tool for source-to-source floating-point code optimization
 
 ## Build
 
-Get the sources and build __clang__ as explained
-[here](http://clang.llvm.org/get_started.html) (steps 1, 2, 3, 5, and
-6), but add the following step between 2 and 3:
+Run or adjust `build.sh`:
 
 ```bash
-cd llvm-project/clang-tools-extra
-echo "add_subdirectory(clang-fco)" >> CMakelist.txt
-git clone https://github.com/thvnx/clang-fco.git
-cd ../..
+git clone --depth 1 https://github.com/llvm/llvm-project.git
+echo "add_subdirectory(clang-fco)" >> llvm-project/clang-tools-extra/CMakeLists.txt
+mkdir llvm-project/clang-tools-extra/clang-fco
+cp CMakeLists.txt ClangFCO.cpp llvm-project/clang-tools-extra/clang-fco
+mkdir llvm-project-build
+cd llvm-project-build
+cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release \
+      -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_BUILD_LLVM_DYLIB=True \
+      -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" -G "Ninja" ../llvm-project/llvm
+ninja
 ```
 
 ## Usage
 
 ```bash
-./clang-fco source.c --
+./bin/clang-fco source.c --
 ```
