@@ -11,4 +11,4 @@ cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=../llvm-project-root \
       -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_BUILD_LLVM_DYLIB=True \
       -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" ../llvm-project/llvm
-ninja
+ninja install
