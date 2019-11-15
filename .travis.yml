@@ -12,7 +12,9 @@ addons:
     packages: ninja-build
   homebrew:
     update: true
-    packages: ninja
+    packages:
+      - ninja
+      - llvm
 
 before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=/usr/local/opt/llvm/bin:$PATH ; fi
