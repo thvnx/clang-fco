@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/thvnx/clang-fco.svg?branch=master)](https://travis-ci.com/thvnx/clang-fco)
+
 # clang-fco
 clang tool for source-to-source floating-point code optimization
 
