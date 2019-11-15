@@ -7,11 +7,15 @@ os:
   - linux
   - osx
 
-install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    sudo apt-get install ninja-build ; fi
+addons:
+  apt:
+    packages: ninja-build
+  homebrew:
+    update: true
+    packages: ninja
 
 before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=/usr/local/opt/llvm/bin:$PATH ; fi
   - ./standalone/build.sh
 
 script:
