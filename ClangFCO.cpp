@@ -42,39 +42,42 @@ public:
 
   void run(const MatchFinder::MatchResult &Result) override {
 
-    const BinaryOperator *BinOp = Result.Nodes.getNodeAs<BinaryOperator>("AssignOp");
+    const BinaryOperator *BinOp =
+        Result.Nodes.getNodeAs<BinaryOperator>("AssignOp");
     const Expr *LeftHS = BinOp->getLHS();
     const Expr *RightHS = BinOp->getRHS();
 
-    //BinOp->dump();
+    // BinOp->dump();
 
-    llvm::outs() << BinOp->getOperatorLoc().printToString(*(Result.SourceManager)) << ": ";
+    llvm::outs() << BinOp->getOperatorLoc().printToString(
+                        *(Result.SourceManager))
+                 << ": ";
 
-    llvm::outs() << "match " << BinOp->isMultiplicativeOp() << " " <<
-      LeftHS->getType().getAsString() << " " <<
-      RightHS->getType().getAsString() << " " <<
-      LeftHS->getType().getTypePtr()->isRealFloatingType() << " " << '\n';
+    llvm::outs() << "match " << BinOp->isMultiplicativeOp() << " "
+                 << LeftHS->getType().getAsString() << " "
+                 << RightHS->getType().getAsString() << " "
+                 << LeftHS->getType().getTypePtr()->isRealFloatingType() << " "
+                 << '\n';
 
-    Replacement Rep(*(Result.SourceManager), BinOp->getBeginLoc(), 0, "/* test */");
+    Replacement Rep(*(Result.SourceManager), BinOp->getBeginLoc(), 0,
+                    "/* test */");
 
     std::map<std::string, Replacements>::iterator it;
     it = Replace->find(Result.SourceManager->getFilename(BinOp->getExprLoc()));
-    if (it != Replace->end())
-      {
-	llvm::outs() << "bingo: " << it->second.size() << '\n';
-	Replacements rr(Rep);
-	it->second = rr.merge(it->second);
-	llvm::outs() << "bingo: " << it->second.size() << '\n';
-      }
-    else
-      {
-	Replace->insert ( std::pair<std::string, Replacements>(Result.SourceManager->getFilename(BinOp->getExprLoc()) , Rep) );
-      }
+    if (it != Replace->end()) {
+      llvm::outs() << "bingo: " << it->second.size() << '\n';
+      Replacements rr(Rep);
+      it->second = rr.merge(it->second);
+      llvm::outs() << "bingo: " << it->second.size() << '\n';
+    } else {
+      Replace->insert(std::pair<std::string, Replacements>(
+          Result.SourceManager->getFilename(BinOp->getExprLoc()), Rep));
+    }
 
-    llvm::outs() << Result.SourceManager->getFilename(BinOp->getExprLoc()) << '\n';
+    llvm::outs() << Result.SourceManager->getFilename(BinOp->getExprLoc())
+                 << '\n';
 
     llvm::outs() << Rep.isApplicable() << " " << Rep.toString() << '\n';
-
   }
 
 private:
@@ -88,33 +91,33 @@ public:
 
   void run(const MatchFinder::MatchResult &Result) override {
 
-    const BinaryOperator *BinOp = Result.Nodes.getNodeAs<BinaryOperator>("AssignOp");
+    const BinaryOperator *BinOp =
+        Result.Nodes.getNodeAs<BinaryOperator>("AssignOp");
     const Expr *LeftHS = BinOp->getLHS();
     const Expr *RightHS = BinOp->getRHS();
 
-    llvm::outs() << "match " << BinOp->isMultiplicativeOp() << " " <<
-      LeftHS->getType().getAsString() << " " <<
-      RightHS->getType().getAsString() << " " <<
-      LeftHS->getType().getTypePtr()->isRealFloatingType() << " " << '\n';
+    llvm::outs() << "match " << BinOp->isMultiplicativeOp() << " "
+                 << LeftHS->getType().getAsString() << " "
+                 << RightHS->getType().getAsString() << " "
+                 << LeftHS->getType().getTypePtr()->isRealFloatingType() << " "
+                 << '\n';
 
-    Replacement Rep(*(Result.SourceManager), BinOp->getBeginLoc(), 0, "/* test */");
+    Replacement Rep(*(Result.SourceManager), BinOp->getBeginLoc(), 0,
+                    "/* test */");
 
     std::map<std::string, Replacements>::iterator it;
     it = Replace->find(Result.SourceManager->getFilename(BinOp->getExprLoc()));
-    if (it != Replace->end())
-      {
-	llvm::outs() << "bingo vd: " << it->second.size() << '\n';
-	Replacements rr(Rep);
-	it->second = rr.merge(it->second);
-	llvm::outs() << "bingo vd: " << it->second.size() << '\n';
-      }
-    else
-      {
-	Replace->insert ( std::pair<std::string, Replacements>(Result.SourceManager->getFilename(BinOp->getExprLoc()) , Rep) );
-      }
+    if (it != Replace->end()) {
+      llvm::outs() << "bingo vd: " << it->second.size() << '\n';
+      Replacements rr(Rep);
+      it->second = rr.merge(it->second);
+      llvm::outs() << "bingo vd: " << it->second.size() << '\n';
+    } else {
+      Replace->insert(std::pair<std::string, Replacements>(
+          Result.SourceManager->getFilename(BinOp->getExprLoc()), Rep));
+    }
 
     llvm::outs() << Rep.isApplicable() << " " << Rep.toString() << '\n';
-
   }
 
 private:
@@ -130,7 +133,7 @@ int main(int argc, const char **argv) {
   llvm::sys::PrintStackTraceOnErrorSignal(argv[0]);
   CommonOptionsParser OptionsParser(argc, argv, ClangFCOCategory);
   RefactoringTool Tool(OptionsParser.getCompilations(),
-		       OptionsParser.getSourcePathList());
+                       OptionsParser.getSourcePathList());
   ast_matchers::MatchFinder Finder;
   AssignOpCallback aoCallback(&Tool.getReplacements());
   VarDeclCallback vdCallback(&Tool.getReplacements());
@@ -139,11 +142,16 @@ int main(int argc, const char **argv) {
   // Use Finder.addMatcher(...) to define the patterns in the AST that you
   // want to match against. You are not limited to just one matcher!
 
-  Finder.addMatcher( binaryOperator(hasOperatorName("=")).bind("AssignOp") , &aoCallback);
+  Finder.addMatcher(binaryOperator(hasOperatorName("=")).bind("AssignOp"),
+                    &aoCallback);
 
-  Finder.addMatcher( varDecl(hasInitializer(binaryOperator(hasOperatorName("*")).bind("AssignOp"))).bind("someVarDecl") , &vdCallback);
+  Finder.addMatcher(
+      varDecl(
+          hasInitializer(binaryOperator(hasOperatorName("*")).bind("AssignOp")))
+          .bind("someVarDecl"),
+      &vdCallback);
 
-  int res = Tool.run/*AndSave*/(newFrontendActionFactory(&Finder).get());
+  int res = Tool.run /*AndSave*/ (newFrontendActionFactory(&Finder).get());
 
   llvm::outs() << Tool.getReplacements().size() << '\n';
 
