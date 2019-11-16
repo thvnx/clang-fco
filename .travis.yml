@@ -1,10 +1,63 @@
-language: c
+# # Derived from:
+# #   https://github.com/include-what-you-use/include-what-you-use (393a5fa)
+
+# dist: xenial
+# language: cpp
+
+# addons:
+#   apt:
+#     sources:
+#      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main'
+#        key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+#     packages:
+#      - ninja-build
+#      # TODO: These should really be the snapshots packages, but they are currently
+#      # broken. Remove the version suffix once they get fixed (see issue #642 for
+#      # more info)
+#      - llvm-10-dev
+#      - llvm-10-tools
+#      - libclang-10-dev
+#      - clang-10
+#      # TODO: This is required for lit-cpuid, which is exported from
+#      # LLVMConfig.cmake, but shipped with LLDB.
+#      - lldb-10
+
+# before_install:
+#  # Install a supported cmake version (>= 3.4.3)
+#  - wget -O cmake.sh https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.sh 
+#  - sudo sh cmake.sh --skip-license --exclude-subdir --prefix=/usr/local
+
+#  # Extract the version number from the most-recently installed LLVM
+#  - VERSION=`ls -t /usr/lib/ | grep '^llvm-' | head -n 1 | sed -E 's/llvm-(.+)/\1/'`
+
+#  # Absolute paths to LLVM's root and bin directory
+#  - ROOT_PATH=`llvm-config-$VERSION --prefix`
+#  - BIN_PATH=`llvm-config-$VERSION --bindir`
+
+#  # TODO: Remove these hacky fixups
+#  - (cd $ROOT_PATH/lib && sudo ln -rsf libclang-cpp.so.1 libclang-cpp-$VERSION.so.1)
+
+# script:
+# # Build
+#  - mkdir build
+#  - cd build
+#  - cmake -GNinja -DCMAKE_PREFIX_PATH=$ROOT_PATH -DCMAKE_C_COMPILER=$BIN_PATH/clang -DCMAKE_CXX_COMPILER=$BIN_PATH/clang++ -DCMAKE_INSTALL_PREFIX=./ ../
+#  - ninja
+
+# # Test
+#  - CTEST_OUTPUT_ON_FAILURE=1 ninja test
+
+# # Test install
+#  - ninja install
+
+
+language: cpp
 
 compiler:
   - clang
 
 os:
-  - linux
+#  - linux
   - osx
 
 addons:
@@ -16,9 +69,14 @@ addons:
       - ninja
       - llvm
 
-before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=/usr/local/opt/llvm/bin:$PATH ; fi
-  - ./standalone/build.sh
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PATH=/usr/local/opt/llvm/bin:$PATH ; fi
+  - ROOT_PATH=`llvm-config --prefix`
+  - BIN_PATH=`llvm-config --bindir`
 
 script:
-  - echo "Finished"
+  - mkdir build
+  - cd build
+  - cmake -GNinja -DCMAKE_PREFIX_PATH=$ROOT_PATH -DCMAKE_C_COMPILER=$BIN_PATH/clang -DCMAKE_CXX_COMPILER=$BIN_PATH/clang++ -DCMAKE_INSTALL_PREFIX=./ ../
+  - ninja
+  - ninja install
