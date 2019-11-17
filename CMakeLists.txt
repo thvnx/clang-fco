@@ -72,22 +72,6 @@ endif()
 # available when ClangFCO is executed from the build dir.
 add_dependencies(clang-fco clang-resource-headers)
 
-if (MINGW)
-  # Work around 'too many sections' error with MINGW/GCC
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
-endif()
-
-if (MSVC)
-  # Disable warnings for ClangFCO, and disable exceptions in MSVC's STL.
-  add_definitions(
-    -wd4722 # Suppress ''destructor'' : destructor never returns, potential memory leak
-    -D_HAS_EXCEPTIONS=0
-    )
-
-  # Enable bigobj support and sane C++ exception semantics.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc")
-endif()
-
 # If only clang-cpp is available, we take that.
 if (TARGET clang-cpp AND NOT TARGET clangBasic)
   target_link_libraries(clang-fco PRIVATE clang-cpp)
@@ -100,14 +84,6 @@ else()
     clangFrontend
     clangTooling
     clangToolingRefactoring
-    )
-endif()
-
-# Platform dependencies.
-if (WIN32)
-  target_link_libraries(clang-fco
-    PRIVATE
-    shlwapi  # For PathMatchSpecA
     )
 endif()
 
