@@ -98,7 +98,7 @@ else()
   message(STATUS "Warning: ClangFCO Git version info not found, DO NOT release "
                  "from this build tree!")
 endif()
-add_definitions(-DClangFCO_GIT_REV="${ClangFCO_GIT_REV}")
+add_definitions(-DFCO_GIT_REV="${ClangFCO_GIT_REV}")
 
 # Install programs
 include(GNUInstallDirs)
