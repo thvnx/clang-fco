@@ -29,6 +29,10 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Signals.h"
 
+#ifndef FCO_GIT_REV
+#define FCO_GIT_REV "unknown"
+#endif
+
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace clang::tooling;
@@ -137,6 +141,8 @@ int main(int argc, const char **argv) {
   ast_matchers::MatchFinder Finder;
   AssignOpCallback aoCallback(&Tool.getReplacements());
   VarDeclCallback vdCallback(&Tool.getReplacements());
+
+  llvm::outs() << "ClangFCO (version " << FCO_GIT_REV << ")\n";
 
   // TODO: Put your matchers here.
   // Use Finder.addMatcher(...) to define the patterns in the AST that you
